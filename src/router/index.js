@@ -69,6 +69,22 @@ const routes = [
     component: () => import('@/pages/Dashboard.vue'),
     meta: { requiresAuth: true },
   },
+  // =============== Recommendation System ================
+  {
+    path: '/questionnaire',
+    name: 'Questionnaire',
+    component: () => import('@/pages/Questionnaire.vue'),
+  },
+  {
+    path: '/recommendations',
+    name: 'Recommendations',
+    component: () => import('@/pages/Recommendations.vue'),
+  },
+  {
+    path: '/products',
+    name: 'Products',
+    component: () => import('@/pages/Products.vue'),
+  },
   // 404 Not Found - must be last route
   {
     path: '/:pathMatch(.*)*',

@@ -51,8 +51,41 @@
         </div>
       </div>
 
+      <!-- Quick Actions -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <button @click="$router.push('/questionnaire')"
+          class="bg-white rounded-2xl p-6 border border-gray-100 text-left transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 group">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl mb-4"
+            style="background: linear-gradient(135deg, rgba(225, 29, 72, 0.1), rgba(251, 113, 133, 0.1));">
+            ✨
+          </div>
+          <h3 class="text-base font-bold text-gray-800 mb-1 group-hover:text-gluzo-600 transition-colors">Take Skin Quiz</h3>
+          <p class="text-sm text-gray-400">Get personalized product recommendations.</p>
+        </button>
+
+        <button @click="$router.push('/recommendations')"
+          class="bg-white rounded-2xl p-6 border border-gray-100 text-left transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 group">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl mb-4"
+            style="background: rgba(16, 185, 129, 0.08);">
+            🎯
+          </div>
+          <h3 class="text-base font-bold text-gray-800 mb-1 group-hover:text-gluzo-600 transition-colors">View Recommendations</h3>
+          <p class="text-sm text-gray-400">See your matched products with scores.</p>
+        </button>
+
+        <button @click="$router.push('/products')"
+          class="bg-white rounded-2xl p-6 border border-gray-100 text-left transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 group">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl mb-4"
+            style="background: rgba(59, 130, 246, 0.08);">
+            🛍️
+          </div>
+          <h3 class="text-base font-bold text-gray-800 mb-1 group-hover:text-gluzo-600 transition-colors">Browse Products</h3>
+          <p class="text-sm text-gray-400">Explore catalog and mock-purchase products.</p>
+        </button>
+      </div>
+
       <!-- User Info Card -->
-      <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
+      <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm mb-10">
         <h2 class="text-xl font-bold mb-6" style="color: #1F2937;">
           <i class="fas fa-user-circle mr-2" style="color: #E11D48;"></i> Profile Information
         </h2>
@@ -88,65 +121,105 @@
         </div>
       </div>
 
-      <!-- Placeholder content -->
-      <div class="mt-10 bg-white rounded-2xl p-12 border border-dashed border-gray-200 text-center">
-        <div class="text-5xl mb-4">🛍️</div>
-        <h3 class="text-xl font-bold mb-2" style="color: #1F2937;">More Features Coming Soon</h3>
-        <p class="text-gray-400 text-sm max-w-md mx-auto">
-          Product browsing, orders, wishlist, and more will be available in Phase 2.
-        </p>
+      <!-- Recent Purchases -->
+      <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
+        <h2 class="text-xl font-bold mb-6" style="color: #1F2937;">
+          <i class="fas fa-shopping-bag mr-2" style="color: #E11D48;"></i> Recent Mock Purchases
+        </h2>
+
+        <div v-if="ordersLoading" class="text-center py-8">
+          <div class="inline-block w-6 h-6 border-2 border-gluzo-200 border-t-gluzo-600 rounded-full animate-spin"></div>
+        </div>
+
+        <div v-else-if="orders.length === 0"
+          class="text-center py-8 border border-dashed border-gray-200 rounded-xl">
+          <div class="text-3xl mb-2">📦</div>
+          <p class="text-gray-400 text-sm">No purchases yet.</p>
+          <button @click="$router.push('/products')"
+            class="mt-3 text-sm font-medium text-gluzo-600 hover:text-gluzo-700">
+            Browse products →
+          </button>
+        </div>
+
+        <div v-else class="space-y-3">
+          <div v-for="order in orders.slice(0, 5)" :key="order.id"
+            class="flex items-center justify-between p-4 rounded-xl border border-gray-50 hover:bg-gray-50/50 transition-all">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center text-lg"
+                style="background: rgba(225, 29, 72, 0.06);">
+                🛒
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-gray-800">{{ order.product?.name || 'Product' }}</p>
+                <p class="text-xs text-gray-400">{{ order.product?.brand }} · Qty: {{ order.quantity }}</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-semibold" style="color: #E11D48;">₹{{ Number(order.product?.price || 0).toLocaleString() }}</p>
+              <p class="text-xs text-gray-400">{{ formatDate(order.purchased_at) }}</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
+import { useRecommendationStore } from '@/stores/recommendationStore';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 
 const authStore = useAuthStore();
+const recStore = useRecommendationStore();
 const router = useRouter();
 const toast = useToast();
 
-const stats = [
+const orders = ref([]);
+const ordersLoading = ref(false);
+
+const stats = computed(() => [
   {
     icon: '🛒',
-    value: '0',
-    label: 'Orders',
-    badge: 'Phase 2',
+    value: String(orders.value.length),
+    label: 'Mock Purchases',
+    badge: 'Active',
     bg: 'rgba(225, 29, 72, 0.08)',
+    badgeBg: 'rgba(16, 185, 129, 0.08)',
+    badgeColor: '#059669',
+  },
+  {
+    icon: '✨',
+    value: String(recStore.recommendations.length),
+    label: 'Recommendations',
+    badge: recStore.scoringMode === 'authenticated' ? 'Personalized' : 'Take Quiz',
+    bg: 'rgba(251, 113, 133, 0.08)',
     badgeBg: 'rgba(225, 29, 72, 0.08)',
     badgeColor: '#E11D48',
   },
   {
-    icon: '❤️',
-    value: '0',
-    label: 'Wishlist Items',
-    badge: 'Phase 2',
-    bg: 'rgba(251, 113, 133, 0.08)',
-    badgeBg: 'rgba(251, 113, 133, 0.08)',
-    badgeColor: '#FB7185',
-  },
-  {
     icon: '📦',
-    value: '0',
-    label: 'In Transit',
-    badge: 'Phase 2',
+    value: String(recStore.products.length),
+    label: 'Products Available',
+    badge: 'Browse',
     bg: 'rgba(59, 130, 246, 0.08)',
     badgeBg: 'rgba(59, 130, 246, 0.08)',
     badgeColor: '#3B82F6',
   },
   {
-    icon: '⭐',
-    value: '0',
-    label: 'Reviews',
-    badge: 'Phase 2',
+    icon: '🎯',
+    value: recStore.recommendations.length > 0
+      ? `${recStore.recommendations[0]?.confidence_score || 0}%`
+      : '—',
+    label: 'Top Match Score',
+    badge: 'Best Match',
     bg: 'rgba(245, 158, 11, 0.08)',
     badgeBg: 'rgba(245, 158, 11, 0.08)',
     badgeColor: '#F59E0B',
   },
-];
+]);
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '—';
@@ -164,4 +237,17 @@ const handleLogout = async () => {
     router.push('/');
   }
 };
+
+onMounted(async () => {
+  // Load order history
+  ordersLoading.value = true;
+  await recStore.fetchOrders();
+  orders.value = recStore.orders;
+  ordersLoading.value = false;
+
+  // Try loading products count and recommendations
+  if (recStore.products.length === 0) {
+    recStore.fetchProducts();
+  }
+});
 </script>
