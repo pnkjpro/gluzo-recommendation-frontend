@@ -11,7 +11,7 @@ node_modules
 .DS_Store
 dist
 dist-ssr
-dist-prod
+#dist-prod
 dist-staging
 coverage
 *.local
