@@ -35,11 +35,7 @@
       <div class="flex items-center justify-between mb-8">
         <div>
           <h1 class="text-3xl font-bold" style="color: #1F2937;">All Products</h1>
-          <p class="text-gray-500 text-sm mt-1">Browse our skincare catalog. {{ authStore.user ? 'Click "Buy" to mock-purchase and improve your recommendations.' : '' }}</p>
-        </div>
-        <div v-if="!authStore.user" class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium"
-          style="background: rgba(245, 158, 11, 0.08); color: #D97706;">
-          <i class="fas fa-lock"></i> Sign in to mock-purchase
+          <p class="text-gray-500 text-sm mt-1">Browse our skincare catalog. Click "Buy" to mock-purchase and improve your recommendations.</p>
         </div>
       </div>
 
@@ -84,7 +80,7 @@
 
             <div class="flex items-center justify-between">
               <span class="text-lg font-bold" style="color: #E11D48;">₹{{ Number(product.price).toLocaleString() }}</span>
-              <button v-if="authStore.user"
+              <button
                 @click="handlePurchase(product)"
                 :disabled="purchasing === product.id"
                 class="px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all duration-200 disabled:opacity-50"
@@ -113,9 +109,13 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useToast } from 'vue-toastification';
 import { useAuthStore } from '@/stores/authStore';
 import { useRecommendationStore } from '@/stores/recommendationStore';
 
+const router = useRouter();
+const toast = useToast();
 const authStore = useAuthStore();
 const recStore = useRecommendationStore();
 
@@ -149,6 +149,12 @@ function categoryEmoji(category) {
 }
 
 async function handlePurchase(product) {
+  if (!authStore.user) {
+    toast.info('Please sign in to purchase products');
+    router.push('/auth/login');
+    return;
+  }
+
   purchasing.value = product.id;
   await recStore.mockPurchase(product.id);
   purchasing.value = null;
