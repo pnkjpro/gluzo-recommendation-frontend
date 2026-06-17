@@ -113,7 +113,7 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true;
     try {
       const response = await api.get('/users/user');
-      user.value = response.data.user;
+      user.value = response.data.data?.user || response.data.user;
       return user.value;
     } catch (err) {
       user.value = null;

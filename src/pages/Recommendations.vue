@@ -40,11 +40,11 @@
           </p>
           <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium"
             :style="scoringBadgeStyle">
-            <i :class="recStore.scoringMode === 'authenticated' ? 'fas fa-lock' : 'fas fa-globe'"></i>
-            {{ recStore.scoringMode === 'authenticated' ? 'Personalized' : 'Guest Mode' }}
+            <i :class="authStore.user ? 'fas fa-lock' : 'fas fa-globe'"></i>
+            {{ authStore.user ? 'Personalized' : 'Guest Mode' }}
           </span>
         </div>
-        <p v-if="recStore.scoringMode === 'guest'" class="text-xs text-amber-600 mt-2">
+        <p v-if="!authStore.user" class="text-xs text-amber-600 mt-2">
           <i class="fas fa-info-circle mr-1"></i>
           <router-link to="/auth/login" class="underline font-medium">Sign in</router-link> to unlock purchase-history-based recommendations for higher accuracy.
         </p>
@@ -141,7 +141,7 @@ const recStore = useRecommendationStore();
 const hasLoaded = ref(false);
 
 const scoringBadgeStyle = computed(() => {
-  if (recStore.scoringMode === 'authenticated') {
+  if (authStore.user) {
     return { background: 'rgba(16, 185, 129, 0.08)', color: '#059669' };
   }
   return { background: 'rgba(245, 158, 11, 0.08)', color: '#D97706' };
