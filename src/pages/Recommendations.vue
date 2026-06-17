@@ -164,6 +164,10 @@ function scoreColor(score) {
 }
 
 onMounted(async () => {
+  // Ensure auth state is hydrated so the backend returns 'authenticated' scoring mode
+  if (authStore.token && !authStore.user) {
+    await authStore.fetchUser();
+  }
   await recStore.fetchRecommendations();
   hasLoaded.value = true;
 });
