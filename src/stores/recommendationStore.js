@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 import api from '@/plugins/axios';
 import { useToast } from 'vue-toastification';
+import { useAuthStore } from '@/stores/authStore';
 
 export const useRecommendationStore = defineStore('recommendation', () => {
   const questions = ref([]);
@@ -49,11 +50,16 @@ export const useRecommendationStore = defineStore('recommendation', () => {
   async function submitQuestionnaire(answers) {
     loading.value = true;
     try {
-      const sid = ensureSessionId();
-      const response = await api.post('/questionnaire', {
-        answers,
-        session_id: sid,
-      });
+      const authStore = useAuthStore();
+      const payload = { answers };
+
+      // Only send session_id for guest users
+      if (!authStore.user) {
+        const sid = ensureSessionId();
+        payload.session_id = sid;
+      }
+
+      const response = await api.post('/questionnaire', payload);
       return { success: true, data: response.data.data };
     } catch (err) {
       console.error('Error submitting questionnaire:', err);
@@ -70,10 +76,14 @@ export const useRecommendationStore = defineStore('recommendation', () => {
   async function fetchRecommendations(limit = 10) {
     loading.value = true;
     try {
+      const authStore = useAuthStore();
       const params = { limit };
-      if (sessionId.value) {
+
+      // Only send session_id for guest users
+      if (!authStore.user && sessionId.value) {
         params.session_id = sessionId.value;
       }
+
       const response = await api.get('/recommendations', { params });
       const data = response.data.data;
 

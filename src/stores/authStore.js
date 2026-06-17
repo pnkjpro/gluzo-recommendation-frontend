@@ -62,7 +62,10 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true;
     try {
       await axios.get(`${import.meta.env.VITE_BASE_API}/sanctum/csrf-cookie`);
-      const response = await api.post('/users/login', credentials);
+      const response = await api.post('/users/login', {
+        ...credentials,
+        session_id: localStorage.getItem('gluzo_session_id'),
+      });
       const userData = response.data.data?.user;
       const isVerified = !!(userData?.email_verified_at);
 
@@ -150,6 +153,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (verifyEmail.value && !payload.email) {
         payload.email = verifyEmail.value;
       }
+      payload.session_id = localStorage.getItem('gluzo_session_id');
       const response = await api.post('/users/otp/verify', payload);
       if (response.data.success) {
         if (response.data.data.is_new) {
@@ -183,6 +187,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (verifyEmail.value && !payload.email) {
         payload.email = verifyEmail.value;
       }
+      payload.session_id = localStorage.getItem('gluzo_session_id');
       const response = await api.post('/users/otp-register', payload);
       if (response.data.success) {
         user.value = response.data.data.user;
