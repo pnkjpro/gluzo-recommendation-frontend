@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 import api from '@/plugins/axios';
 import { useToast } from 'vue-toastification';
 
@@ -19,7 +20,7 @@ export const useRecommendationStore = defineStore('recommendation', () => {
    */
   function ensureSessionId() {
     if (!sessionId.value) {
-      sessionId.value = crypto.randomUUID();
+      sessionId.value = uuidv4();
       localStorage.setItem('gluzo_session_id', sessionId.value);
     }
     return sessionId.value;
