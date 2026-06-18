@@ -28,7 +28,7 @@
     <!-- Content -->
     <div class="w-full h-[calc(100vh-73px)]">
       <iframe
-        src="/api_doc.html"
+        src="/gluzo_api_doc.html"
         class="w-full h-full border-0"
         title="Gluzo API Documentation"
       ></iframe>
