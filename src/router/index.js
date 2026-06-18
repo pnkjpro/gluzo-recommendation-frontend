@@ -85,6 +85,17 @@ const routes = [
     name: 'Products',
     component: () => import('@/pages/Products.vue'),
   },
+  // =============== Documentation ================
+  {
+    path: '/documentation',
+    name: 'Documentation',
+    component: () => import('@/pages/Documentation.vue'),
+  },
+  {
+    path: '/api-doc',
+    name: 'ApiDoc',
+    component: () => import('@/pages/ApiDoc.vue'),
+  },
   // 404 Not Found - must be last route
   {
     path: '/:pathMatch(.*)*',

@@ -12,6 +12,14 @@
             class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all hidden sm:block">
             <i class="fas fa-shopping-bag mr-1.5"></i> Products
           </button>
+          <button @click="$router.push('/documentation')"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all hidden sm:block">
+            <i class="fas fa-book mr-1.5"></i> Documentation
+          </button>
+          <button @click="$router.push('/api-doc')"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all hidden sm:block">
+            <i class="fas fa-code mr-1.5"></i> API Doc
+          </button>
           <button v-if="!authStore.user" @click="$router.push('/auth/login')"
             class="px-6 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
             style="background: linear-gradient(135deg, #E11D48 0%, #BE123C 100%); box-shadow: 0 4px 14px rgba(225, 29, 72, 0.25);">
@@ -43,7 +51,7 @@
         <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 text-sm font-medium"
           style="background: rgba(225, 29, 72, 0.08); color: #E11D48;">
           <i class="fas fa-sparkles text-xs"></i>
-          AI-Powered Skin Analysis
+          Smart Skin Analysis
         </div>
 
         <h1 class="text-4xl lg:text-6xl font-extrabold tracking-tight mb-4" style="color: #1F2937;">

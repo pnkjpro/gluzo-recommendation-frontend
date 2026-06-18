@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>api_doc.md</title>
+  <style>
+  @import url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0-alpha2/katex.min.css");
+
+  body {
+    font-family: Georgia, Cambria, serif;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #373D49;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Source Sans Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 600;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+  }
+  h1 { font-size: 2em; }
+  h2 { font-size: 1.5em; }
+  h3 { font-size: 1.25em; }
+  a { color: #35D7BB; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    font-family: "Ubuntu Mono", Monaco, monospace;
+    background: #F5F7FA;
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+  }
+  pre {
+    background: #F5F7FA;
+    padding: 1em;
+    border-radius: 3px;
+    overflow-x: auto;
+  }
+  .hljs {
+    display: block;
+    overflow-x: auto;
+    padding: 0;
+    color: #333;
+  }
+  pre code { background: none; padding: 0; }
+  blockquote {
+    border-left: 3px solid #A0AABF;
+    padding-left: 1em;
+    margin-left: 0;
+    font-style: italic;
+    color: #666;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  th, td {
+    border: 1px solid #E8E8E8;
+    padding: 0.5em;
+    text-align: left;
+  }
+  th {
+    background: #F5F7FA;
+    font-weight: 600;
+  }
+  #preview .table {
+    width: auto;
+  }
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  .katex-display {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+</style>
+</head>
+<body id="preview">
+<h1 class="code-line has-line-data" data-line-start="0" data-line-end="1"><a id="Gluzo_API_Documentation_0"></a>Gluzo — API Documentation</h1>
+<blockquote>
+<p class="has-line-data" data-line-start="2" data-line-end="4">A clean, human-friendly reference for every API endpoint in the Gluzo platform.<br>
+All endpoints are prefixed with <code>/api</code>. Authentication uses Bearer tokens (Laravel Sanctum).</p>
+</blockquote>
+<hr>
+<h2 class="code-line has-line-data" data-line-start="7" data-line-end="8"><a id="Response_Format_7"></a>Response Format</h2>
+<p class="has-line-data" data-line-start="9" data-line-end="10">Every response follows the same envelope:</p>
+<pre><code class="has-line-data language-json" data-line-start="12" data-line-end="20"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;error&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">false</span></span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;status&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;success&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;message&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Human-readable message&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;data&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span> ... <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;success&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p class="has-line-data" data-line-start="21" data-line-end="22">On error: <code>error: true</code>, <code>success: false</code>, and an appropriate HTTP status code (400 / 403 / 404 / 422 / 500).</p>
+<hr>
+<h2 class="code-line has-line-data" data-line-start="25" data-line-end="26"><a id="Rate_Limiting_25"></a>Rate Limiting</h2>
+<table class="table table-striped table-bordered">
+<thead>
+<tr>
+<th>Route Group</th>
+<th>Limit</th>
+<th>Scope</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Auth routes (<code>/api/users/*</code>)</td>
+<td>10 requests/minute</td>
+<td>Per IP address</td>
+</tr>
+<tr>
+<td>All other routes</td>
+<td>60 requests/minute</td>
+<td>Per user (or IP if guest)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 class="code-line has-line-data" data-line-start="34" data-line-end="35"><a id="1_Authentication_34"></a>1. Authentication</h2>
+<h3 class="code-line has-line-data" data-line-start="36" data-line-end="37"><a id="11_Register_Email_Password_36"></a>1.1 Register (Email + Password)</h3>
+<p class="has-line-data" data-line-start="38" data-line-end="39"><strong><code>POST /api/users/create</code></strong></p>
+<p class="has-line-data" data-line-start="40" data-line-end="41">Creates a new user account. Sends a verification OTP to the user’s email before creating the account.</p>
+<table class="table table-striped table-bordered">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th style="text-align:center">Required</th>
+<th>Rules</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>string</td>
+<td style="text-align:center">✅</td>
+<td>Max 255 characters</td>
+</tr>
+<tr>
+<td><code>email</code></td>
+<td>string</td>
+<td style="text-align:center">✅</td>
+<td>Must be unique</td>
+</tr>
+<tr>
+<td><code>password</code></td>
+<td>string</td>
+<td style="text-align:center">✅</td>
+<td>Min 6 characters, must include <code>password_confirmation</code></td>
+</tr>
+</tbody>
+</table>
+<p class="has-line-data" data-line-start="48" data-line-end="49"><strong>What happens:</strong></p>
+<ol>
+<li class="has-line-data" data-line-start="49" data-line-end="50">A 6-digit OTP is sent to the provided email via Gmail SMTP.</li>
+<li class="has-line-data" data-line-start="50" data-line-end="51">The user account is created in the database.</li>
+<li class="has-line-data" data-line-start="51" data-line-end="53">Returns the new user object.</li>
+</ol>
+<p class="has-line-data" data-line-start="53" data-line-end="54"><strong>Response:</strong> <code>201 Created</code> with user data.</p>
+<hr>
+<h3 class="code-line has-line-data" data-line-start="57" data-line-end="58"><a id="12_Login_Email_Password_57"></a>1.2 Login (Email + Password)</h3>
+<p class="has-line-data" data-line-start="59" data-line-end="60"><strong><code>POST /api/users/login</code></strong></p>
+<p class="has-line-data" data-line-start="61" data-line-end="62">Authenticates a user and returns a Bearer token.</p>
+<table class="table table-striped table-bordered">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th style="text-align:center">Required</th>
+<th>Rules</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>login</code></td>
+<td>string</td>
+<td style="text-align:center">✅</td>
+<td>User’s email address</td>
+</tr>
+<tr>
+<td><code>password</code></td>
+<td>string</td>
+<td style="text-align:center">✅</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>session_id</code></td>
+<td>string</td>
+<td style="text-align:center">❌</td>
+<td>Guest session ID to migrate questionnaire data</td>
+</tr>
+</tbody>
+</table>
+<p class="has-line-data" data-line-start="69" data-line-end="70"><strong>What happens:</strong></p>
+<ol>
+<li class="has-line-data" data-line-start="70" data-line-end="71">Validates email and password.</li>
+<li class="has-line-data" data-line-start="71" data-line-end="72">If email is <strong>not verified</strong>, a verification OTP is sent automatically.</li>
+<li class="has-line-data" data-line-start="72" data-line-end="73">If <code>session_id</code> is provided, any guest questionnaire data is migrated to this user.</li>
+<li class="has-line-data" data-line-start="73" data-line-end="75">Returns a Bearer token for future API calls.</li>
+</ol>
+<p class="has-line-data" data-line-start="75" data-line-end="76"><strong>Response:</strong> <code>200 OK</code> with <code>{ user, token }</code>.</p>
+<hr>
+<h3 class="code-line has-line-data" data-line-start="79" data-line-end="80"><a id="13_Send_OTP_79"></a>1.3 Send OTP</h3>
+<p class="has-line-data" data-line-start="81" data-line-end="82"><strong><code>POST /api/users/otp/send</code></strong></p>
+<p class="has-line-data" data-line-start="83" data-line-end="84">Sends a 6-digit OTP code to the provided email address. The OTP is valid for <strong>10 minutes</strong>.</p>
+<table class="table table-striped table-bordered">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th style="text-align:center">Required</th>
+<th>Rules</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>email</code></td>
+<td>string</td>
+<td style="text-align:center">✅</td>
+<td>Valid email</td>
+</tr>
+<tr>
+<td><code>label</code></td>
+<td>string</td>
+<td style="text-align:center">✅</td>
+<td>One of: <code>reset_password</code>, <code>verify_email</code>, <code>login_otp</code></td>
+</tr>
+</tbody>
+</table>
+<p class="has-line-data" data-line-start="90" data-line-end="91"><strong>Important:</strong> For <code>reset_password</code>, the user must already exist (returns 400 otherwise).</p>
+<p class="has-line-data" data-line-start="92" data-line-end="93"><strong>Response:</strong> <code>200 OK</code> with success message.</p>
+<hr>
+<h3 class="code-line has-line-data" data-line-start="96" data-line-end="97"><a id="14_Verify_OTP_96"></a>1.4 Verify OTP</h3>
+<p class="has-line-data" data-line-start="98" data-line-end="99"><strong><code>POST /api/users/otp/verify</code></strong></p>
+<p class="has-line-data" data-line-start="100" data-line-end="101">Verifies a previously sent OTP code and issues a Bearer token.</p>
+<table class="table table-striped table-bordered">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th style="text-align:center">Required</th>
+<th>Rules</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>email</code></td>
+<td>string</td>
+<td style="text-align:center">✅</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>otp</code></td>
+<td>string</td>
+<td style="text-align:center">✅</td>
+<td>6-digit code</td>
+</tr>
+<tr>
+<td><code>label</code></td>
+<td>string</td>
+<td style="text-align:center">✅</td>
+<td>One of: <code>verify_email</code>, <code>reset_password</code>, <code>login_otp</code></td>
+</tr>
+<tr>
+<td><code>session_id</code></td>
+<td>string</td>
+<td style="text-align:center">❌</td>
+<td>Guest session ID to migrate questionnaire data</td>
+</tr>
+</tbody>
+</table>
+<p class="has-line-data" data-line-start="109" data-line-end="110"><strong>What happens:</strong></p>
+<ol>
+<li class="has-line-data" data-line-start="110" data-line-end="111">Marks the OTP record as verified.</li>
+<li class="has-line-data" data-line-start="111" data-line-end="112">For <code>verify_email</code> and <code>login_otp</code>: marks the user’s email as verified.</li>
+<li class="has-line-data" data-line-start="112" data-line-end="113">If the user exists: issues a Bearer token and migrates any guest questionnaire data.</li>
+<li class="has-line-data" data-line-start="113" data-line-end="115">If the user <strong>doesn’t exist</strong>: returns <code>is_new: true</code> — the frontend redirects to the registration page.</li>
+</ol>
+<p class="has-line-data" data-line-start="115" data-line-end="116"><strong>Response:</strong> <code>200 OK</code> with <code>{ user, token, is_new }</code>.</p>
+<hr>
+<h3 class="code-line has-line-data" data-line-start="119" data-line-end="120"><a id="15_Complete_Registration_OTPfirst_flow_119"></a>1.5 Complete Registration (OTP-first flow)</h3>
+<p class="has-line-data" data-line-start="121" data-line-end="122"><strong><code>POST /api/users/otp-register</code></strong></p>
+<p class="has-line-data" data-line-start="123" data-line-end="124">Registers a user who has already verified their email via OTP. Requires a recently verified OTP record (within 15 minutes).</p>
+<table class="table table-striped table-bordered">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th style="text-align:center">Required</th>
+<th>Rules</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>string</td>
+<td style="text-align:center">✅</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>email</code></td>
+<td>string</td>
+<td style="text-align:center">✅</td>
+<td>Must be unique</td>
+</tr>
+<tr>
+<td><code>password</code></td>
+<td>string</td>
+<td style="text-align:center">✅</td>
+<td>Min 6 characters, must include <code>password_confirmation</code></td>
+</tr>
+<tr>
+<td><code>session_id</code></td>
+<td>string</td>
+<td style="text-align:center">❌</td>
+<td>Guest session ID to migrate data</td>
+</tr>
+</tbody>
+</table>
+<p class="has-line-data" data-line-start="132" data-line-end="133"><strong>Response:</strong> <code>201 Created</code> with <code>{ user, token }</code>. Email is pre-verified.</p>
+<hr>
+<h3 class="code-line has-line-data" data-line-start="136" data-line-end="137"><a id="16_Get_Current_User_136"></a>1.6 Get Current User 🔒</h3>
+<p class="has-line-data" data-line-start="138" data-line-end="139"><strong><code>GET /api/users/user</code></strong> — <em>Requires authentication</em></p>
+<p class="has-line-data" data-line-start="140" data-line-end="141">Returns the currently authenticated user’s profile. Used by the frontend on page load to restore the session.</p>
+<p class="has-line-data" data-line-start="142" data-line-end="143"><strong>Response:</strong> <code>200 OK</code> with user object.</p>
+<hr>
+<h3 class="code-line has-line-data" data-line-start="146" data-line-end="147"><a id="17_Logout_146"></a>1.7 Logout 🔒</h3>
+<p class="has-line-data" data-line-start="148" data-line-end="149"><strong><code>POST /api/users/logout</code></strong> — <em>Requires authentication</em></p>
+<p class="has-line-data" data-line-start="150" data-line-end="151">Revokes the current Bearer token, ending the session.</p>
+<p class="has-line-data" data-line-start="152" data-line-end="153"><strong>Response:</strong> <code>200 OK</code> with success message.</p>
+<hr>
+<h3 class="code-line has-line-data" data-line-start="156" data-line-end="157"><a id="18_Reset_Password_156"></a>1.8 Reset Password 🔒</h3>
+<p class="has-line-data" data-line-start="158" data-line-end="159"><strong><code>POST /api/users/password/reset</code></strong> — <em>Requires authentication</em></p>
+<table class="table table-striped table-bordered">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th style="text-align:center">Required</th>
+<th>Rules</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>password</code></td>
+<td>string</td>
+<td style="text-align:center">✅</td>
+<td>Min 6 characters, must include <code>password_confirmation</code></td>
+</tr>
+</tbody>
+</table>
+<p class="has-line-data" data-line-start="164" data-line-end="165"><strong>Response:</strong> <code>200 OK</code> with success message.</p>
+<hr>
+<h2 class="code-line has-line-data" data-line-start="168" data-line-end="169"><a id="2_Questionnaire_168"></a>2. Questionnaire</h2>
+<h3 class="code-line has-line-data" data-line-start="170" data-line-end="171"><a id="21_Get_Questions_170"></a>2.1 Get Questions</h3>
+<p class="has-line-data" data-line-start="172" data-line-end="173"><strong><code>GET /api/questionnaire/questions</code></strong></p>
+<p class="has-line-data" data-line-start="174" data-line-end="175">Returns the list of quiz questions. Each question is dynamically built from the database’s <code>attribute_types</code> table. The response is <strong>cached for 1 hour</strong> for performance.</p>
+<p class="has-line-data" data-line-start="176" data-line-end="177">There are 5 questions:</p>
+<table class="table table-striped table-bordered">
+<thead>
+<tr>
+<th>Question</th>
+<th>Input Type</th>
+<th style="text-align:center">Required</th>
+<th>Example Options</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>What is your skin type?</td>
+<td>Single select</td>
+<td style="text-align:center">✅</td>
+<td>Oily, Dry, Combination, Normal, Sensitive</td>
+</tr>
+<tr>
+<td>What are your primary skin concerns?</td>
+<td>Multi select</td>
+<td style="text-align:center">✅</td>
+<td>Acne, Dark spots, Aging, Dryness, Large pores</td>
+</tr>
+<tr>
+<td>What is your budget preference?</td>
+<td>Single select</td>
+<td style="text-align:center">✅</td>
+<td>Budget, Mid-range, Premium</td>
+</tr>
+<tr>
+<td>What is your age range?</td>
+<td>Single select</td>
+<td style="text-align:center">✅</td>
+<td>18-24, 25-34, 35-44, 45+</td>
+</tr>
+<tr>
+<td>Any ingredient allergies?</td>
+<td>Multi select</td>
+<td style="text-align:center">❌</td>
+<td>Retinol, Fragrance, Parabens, None</td>
+</tr>
+</tbody>
+</table>
+<p class="has-line-data" data-line-start="186" data-line-end="187"><strong>Response:</strong> <code>200 OK</code> with array of question objects.</p>
+<hr>
+<h3 class="code-line has-line-data" data-line-start="190" data-line-end="191"><a id="22_Submit_Answers_190"></a>2.2 Submit Answers</h3>
+<p class="has-line-data" data-line-start="192" data-line-end="193"><strong><code>POST /api/questionnaire</code></strong></p>
+<p class="has-line-data" data-line-start="194" data-line-end="195">Saves the user’s quiz answers. If the user has previous answers, they are <strong>replaced</strong> (not appended).</p>
+<table class="table table-striped table-bordered">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th style="text-align:center">Required</th>
+<th>Rules</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>answers</code></td>
+<td>object</td>
+<td style="text-align:center">✅</td>
+<td><code>{ &quot;skin_type&quot;: [&quot;oily&quot;], &quot;concern&quot;: [&quot;acne&quot;, &quot;dark_spots&quot;], ... }</code></td>
+</tr>
+<tr>
+<td><code>session_id</code></td>
+<td>string</td>
+<td style="text-align:center">❌</td>
+<td>For guest users — tracks answers before login</td>
+</tr>
+</tbody>
+</table>
+<p class="has-line-data" data-line-start="201" data-line-end="202"><strong>What happens:</strong></p>
+<ol>
+<li class="has-line-data" data-line-start="202" data-line-end="203">Deletes any previous questionnaire response for this user (or session).</li>
+<li class="has-line-data" data-line-start="203" data-line-end="204">Creates a new response record.</li>
+<li class="has-line-data" data-line-start="204" data-line-end="205">Resolves each answer to its database attribute value IDs.</li>
+<li class="has-line-data" data-line-start="205" data-line-end="207">Clears the user’s recommendation cache (so they get fresh results).</li>
+</ol>
+<p class="has-line-data" data-line-start="207" data-line-end="208"><strong>Response:</strong> <code>201 Created</code> with <code>{ questionnaire_id, session_id }</code>.</p>
+<hr>
+<h2 class="code-line has-line-data" data-line-start="211" data-line-end="212"><a id="3_Recommendations_211"></a>3. Recommendations</h2>
+<h3 class="code-line has-line-data" data-line-start="213" data-line-end="214"><a id="31_Get_Recommendations_213"></a>3.1 Get Recommendations</h3>
+<p class="has-line-data" data-line-start="215" data-line-end="216"><strong><code>GET /api/recommendations</code></strong></p>
+<p class="has-line-data" data-line-start="217" data-line-end="218">Returns a ranked list of skincare products scored against the user’s questionnaire answers. Results are <strong>cached for 10 minutes</strong> per user (or per guest session).</p>
+<table class="table table-striped table-bordered">
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th style="text-align:center">Required</th>
+<th>Rules</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>session_id</code></td>
+<td>string</td>
+<td style="text-align:center">❌</td>
+<td>For guests who haven’t logged in</td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td>int</td>
+<td style="text-align:center">❌</td>
+<td>1–20, default: 10</td>
+</tr>
+</tbody>
+</table>
+<p class="has-line-data" data-line-start="224" data-line-end="225"><strong>How the system finds the user’s answers:</strong></p>
+<ol>
+<li class="has-line-data" data-line-start="225" data-line-end="226">If authenticated → uses the user’s latest questionnaire response.</li>
+<li class="has-line-data" data-line-start="226" data-line-end="227">If guest → uses the provided <code>session_id</code> to find the response.</li>
+<li class="has-line-data" data-line-start="227" data-line-end="229">If neither is found → returns <code>422: Please complete the questionnaire first</code>.</li>
+</ol>
+<p class="has-line-data" data-line-start="229" data-line-end="230"><strong>Each recommendation includes:</strong></p>
+<ul>
+<li class="has-line-data" data-line-start="230" data-line-end="231"><strong>Product details</strong> — name, brand, price, category, image</li>
+<li class="has-line-data" data-line-start="231" data-line-end="232"><strong>Confidence score</strong> — 0 to 100 (how well this product matches)</li>
+<li class="has-line-data" data-line-start="232" data-line-end="234"><strong>Reasons</strong> — human-readable explanations (“Matches your skin type”, “Within your budget range”)</li>
+</ul>
+<p class="has-line-data" data-line-start="234" data-line-end="235"><strong>Scoring breakdown:</strong></p>
+<ul>
+<li class="has-line-data" data-line-start="235" data-line-end="236">Skin type match: up to 30 points</li>
+<li class="has-line-data" data-line-start="236" data-line-end="237">Concern match: up to 25 points</li>
+<li class="has-line-data" data-line-start="237" data-line-end="238">Budget match: up to 15 points</li>
+<li class="has-line-data" data-line-start="238" data-line-end="239">Age range match: up to 10 points</li>
+<li class="has-line-data" data-line-start="239" data-line-end="241">Purchase history (logged-in users only): up to 20 points</li>
+</ul>
+<p class="has-line-data" data-line-start="241" data-line-end="242">Products containing ingredients the user is allergic to are <strong>automatically excluded</strong>.</p>
+<p class="has-line-data" data-line-start="243" data-line-end="244"><strong>Response:</strong> <code>200 OK</code> with <code>{ is_personalized, scoring_mode, recommendations: [...] }</code>.</p>
+<hr>
+<h2 class="code-line has-line-data" data-line-start="247" data-line-end="248"><a id="4_Products_247"></a>4. Products</h2>
+<h3 class="code-line has-line-data" data-line-start="249" data-line-end="250"><a id="41_List_Products_with_Infinite_Scroll_Pagination_249"></a>4.1 List Products (with Infinite Scroll Pagination)</h3>
+<p class="has-line-data" data-line-start="251" data-line-end="252"><strong><code>GET /api/products</code></strong></p>
+<p class="has-line-data" data-line-start="253" data-line-end="254">Returns a paginated list of active products. The frontend implements <strong>infinite scrolling</strong> — as the user scrolls down, subsequent pages are fetched automatically and appended to the product grid.</p>
+<table class="table table-striped table-bordered">
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th style="text-align:center">Required</th>
+<th style="text-align:center">Default</th>
+<th>Rules</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>category</code></td>
+<td>string</td>
+<td style="text-align:center">❌</td>
+<td style="text-align:center">—</td>
+<td>Filter by product category</td>
+</tr>
+<tr>
+<td><code>per_page</code></td>
+<td>int</td>
+<td style="text-align:center">❌</td>
+<td style="text-align:center">12</td>
+<td>Number of products per page</td>
+</tr>
+<tr>
+<td><code>page</code></td>
+<td>int</td>
+<td style="text-align:center">❌</td>
+<td style="text-align:center">1</td>
+<td>Page number</td>
+</tr>
+</tbody>
+</table>
+<p class="has-line-data" data-line-start="261" data-line-end="262">Products are sorted by category, then by name.</p>
+<p class="has-line-data" data-line-start="263" data-line-end="264"><strong>Response:</strong></p>
+<pre><code class="has-line-data language-json" data-line-start="266" data-line-end="289"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;data&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">&quot;products&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+      <span class="hljs-punctuation">{</span>
+        <span class="hljs-attr">&quot;id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span>
+        <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Salicylic Acid Face Wash&quot;</span><span class="hljs-punctuation">,</span>
+        <span class="hljs-attr">&quot;brand&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Minimalist&quot;</span><span class="hljs-punctuation">,</span>
+        <span class="hljs-attr">&quot;price&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">349.00</span><span class="hljs-punctuation">,</span>
+        <span class="hljs-attr">&quot;category&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Cleanser&quot;</span><span class="hljs-punctuation">,</span>
+        <span class="hljs-attr">&quot;slug&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;salicylic-acid-face-wash&quot;</span><span class="hljs-punctuation">,</span>
+        <span class="hljs-attr">&quot;description&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;...&quot;</span><span class="hljs-punctuation">,</span>
+        <span class="hljs-attr">&quot;image_url&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">null</span></span>
+      <span class="hljs-punctuation">}</span>
+    <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;pagination&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+      <span class="hljs-attr">&quot;current_page&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;per_page&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">12</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;total&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">30</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;last_page&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">3</span>
+    <span class="hljs-punctuation">}</span>
+  <span class="hljs-punctuation">}</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p class="has-line-data" data-line-start="290" data-line-end="291"><strong>Frontend behavior:</strong></p>
+<ul>
+<li class="has-line-data" data-line-start="291" data-line-end="292">Page loads → fetches page 1 (12 products)</li>
+<li class="has-line-data" data-line-start="292" data-line-end="293">User scrolls near the bottom → fetches page 2 (next 12 products), appends to the grid</li>
+<li class="has-line-data" data-line-start="293" data-line-end="294">Continues until all products are loaded</li>
+<li class="has-line-data" data-line-start="294" data-line-end="296">Shows “✓ All products loaded” when the last page is reached</li>
+</ul>
+<hr>
+<h3 class="code-line has-line-data" data-line-start="298" data-line-end="299"><a id="42_Product_Detail_298"></a>4.2 Product Detail</h3>
+<p class="has-line-data" data-line-start="300" data-line-end="301"><strong><code>GET /api/products/{id}</code></strong></p>
+<p class="has-line-data" data-line-start="302" data-line-end="303">Returns a single product with all its attribute values (skin type tags, concern tags, ingredients, etc.).</p>
+<p class="has-line-data" data-line-start="304" data-line-end="305"><strong>Response:</strong> <code>200 OK</code> with full product object and related attributes.</p>
+<hr>
+<h2 class="code-line has-line-data" data-line-start="308" data-line-end="309"><a id="5_Orders_308"></a>5. Orders 🔒</h2>
+<p class="has-line-data" data-line-start="310" data-line-end="311">Both endpoints require authentication (Bearer token).</p>
+<h3 class="code-line has-line-data" data-line-start="312" data-line-end="313"><a id="51_Record_a_Purchase_312"></a>5.1 Record a Purchase</h3>
+<p class="has-line-data" data-line-start="314" data-line-end="315"><strong><code>POST /api/orders/mock-purchase</code></strong> — <em>Requires authentication</em></p>
+<p class="has-line-data" data-line-start="316" data-line-end="317">Records a mock purchase. This data is used by the recommendation engine to improve future suggestions (products in the same category or brand get a scoring boost).</p>
+<table class="table table-striped table-bordered">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th style="text-align:center">Required</th>
+<th style="text-align:center">Default</th>
+<th>Rules</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>product_id</code></td>
+<td>int</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">—</td>
+<td>Must reference an existing product</td>
+</tr>
+<tr>
+<td><code>quantity</code></td>
+<td>int</td>
+<td style="text-align:center">❌</td>
+<td style="text-align:center">1</td>
+<td>Range: 1–10</td>
+</tr>
+</tbody>
+</table>
+<p class="has-line-data" data-line-start="323" data-line-end="324"><strong>What happens:</strong></p>
+<ol>
+<li class="has-line-data" data-line-start="324" data-line-end="325">Creates an order record.</li>
+<li class="has-line-data" data-line-start="325" data-line-end="327">Clears the user’s recommendation cache (so future recommendations reflect the purchase).</li>
+</ol>
+<p class="has-line-data" data-line-start="327" data-line-end="328"><strong>Response:</strong> <code>201 Created</code> with <code>{ order_id, product, purchased_at }</code>.</p>
+<hr>
+<h3 class="code-line has-line-data" data-line-start="331" data-line-end="332"><a id="52_Purchase_History_331"></a>5.2 Purchase History</h3>
+<p class="has-line-data" data-line-start="333" data-line-end="334"><strong><code>GET /api/orders</code></strong> — <em>Requires authentication</em></p>
+<p class="has-line-data" data-line-start="335" data-line-end="336">Returns the user’s complete order history, sorted newest first, with full product details included.</p>
+<p class="has-line-data" data-line-start="337" data-line-end="338"><strong>Response:</strong> <code>200 OK</code> with array of order objects.</p>
+<hr>
+<h2 class="code-line has-line-data" data-line-start="341" data-line-end="342"><a id="Quick_Reference_Table_341"></a>Quick Reference Table</h2>
+<table class="table table-striped table-bordered">
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th style="text-align:center">Auth</th>
+<th style="text-align:center">Rate Limit</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>POST</td>
+<td><code>/api/users/create</code></td>
+<td style="text-align:center">—</td>
+<td style="text-align:center">10/min</td>
+<td>Register with email + password</td>
+</tr>
+<tr>
+<td>2</td>
+<td>POST</td>
+<td><code>/api/users/login</code></td>
+<td style="text-align:center">—</td>
+<td style="text-align:center">10/min</td>
+<td>Login, get Bearer token</td>
+</tr>
+<tr>
+<td>3</td>
+<td>POST</td>
+<td><code>/api/users/otp/send</code></td>
+<td style="text-align:center">—</td>
+<td style="text-align:center">10/min</td>
+<td>Send OTP to email</td>
+</tr>
+<tr>
+<td>4</td>
+<td>POST</td>
+<td><code>/api/users/otp/verify</code></td>
+<td style="text-align:center">—</td>
+<td style="text-align:center">10/min</td>
+<td>Verify OTP, get Bearer token</td>
+</tr>
+<tr>
+<td>5</td>
+<td>POST</td>
+<td><code>/api/users/otp-register</code></td>
+<td style="text-align:center">—</td>
+<td style="text-align:center">10/min</td>
+<td>Complete registration after OTP</td>
+</tr>
+<tr>
+<td>6</td>
+<td>GET</td>
+<td><code>/api/users/user</code></td>
+<td style="text-align:center">🔒</td>
+<td style="text-align:center">10/min</td>
+<td>Get current user profile</td>
+</tr>
+<tr>
+<td>7</td>
+<td>POST</td>
+<td><code>/api/users/logout</code></td>
+<td style="text-align:center">🔒</td>
+<td style="text-align:center">10/min</td>
+<td>Revoke token</td>
+</tr>
+<tr>
+<td>8</td>
+<td>POST</td>
+<td><code>/api/users/password/reset</code></td>
+<td style="text-align:center">🔒</td>
+<td style="text-align:center">10/min</td>
+<td>Change password</td>
+</tr>
+<tr>
+<td>9</td>
+<td>GET</td>
+<td><code>/api/questionnaire/questions</code></td>
+<td style="text-align:center">—</td>
+<td style="text-align:center">60/min</td>
+<td>Get quiz questions (cached 1h)</td>
+</tr>
+<tr>
+<td>10</td>
+<td>POST</td>
+<td><code>/api/questionnaire</code></td>
+<td style="text-align:center">—</td>
+<td style="text-align:center">60/min</td>
+<td>Submit quiz answers</td>
+</tr>
+<tr>
+<td>11</td>
+<td>GET</td>
+<td><code>/api/recommendations</code></td>
+<td style="text-align:center">—</td>
+<td style="text-align:center">60/min</td>
+<td>Get product recommendations (cached 10m)</td>
+</tr>
+<tr>
+<td>12</td>
+<td>GET</td>
+<td><code>/api/products</code></td>
+<td style="text-align:center">—</td>
+<td style="text-align:center">60/min</td>
+<td>List products (paginated, infinite scroll)</td>
+</tr>
+<tr>
+<td>13</td>
+<td>GET</td>
+<td><code>/api/products/{id}</code></td>
+<td style="text-align:center">—</td>
+<td style="text-align:center">60/min</td>
+<td>Get single product detail</td>
+</tr>
+<tr>
+<td>14</td>
+<td>POST</td>
+<td><code>/api/orders/mock-purchase</code></td>
+<td style="text-align:center">🔒</td>
+<td style="text-align:center">60/min</td>
+<td>Record a purchase</td>
+</tr>
+<tr>
+<td>15</td>
+<td>GET</td>
+<td><code>/api/orders</code></td>
+<td style="text-align:center">🔒</td>
+<td style="text-align:center">60/min</td>
+<td>Get purchase history</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 class="code-line has-line-data" data-line-start="363" data-line-end="364"><a id="Guest_User_Session_Migration_363"></a>Guest → User Session Migration</h2>
+<p class="has-line-data" data-line-start="365" data-line-end="366">When a guest completes the questionnaire without being logged in, their answers are stored with a <code>session_id</code> (UUID). When they later log in or register:</p>
+<ol>
+<li class="has-line-data" data-line-start="367" data-line-end="368">The system checks if the user already has questionnaire data.</li>
+<li class="has-line-data" data-line-start="368" data-line-end="369">If <strong>no</strong> → the guest’s data is linked to their new user account.</li>
+<li class="has-line-data" data-line-start="369" data-line-end="371">If <strong>yes</strong> → the existing user data is kept (takes priority).</li>
+</ol>
+<p class="has-line-data" data-line-start="371" data-line-end="372">This happens automatically during login, OTP verification, and registration — no extra API calls needed. The guest never loses their quiz answers.</p>
+
+</body>
+</html>
