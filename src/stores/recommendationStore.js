@@ -11,6 +11,10 @@ export const useRecommendationStore = defineStore('recommendation', () => {
   const products = ref([]);
   const orders = ref([]);
   const loading = ref(false);
+  const loadingMore = ref(false);
+  const productPage = ref(1);
+  const productLastPage = ref(1);
+  const hasMoreProducts = ref(false);
   const scoringMode = ref('');
   const isPersonalized = ref(false);
   const sessionId = ref(localStorage.getItem('gluzo_session_id') || '');
@@ -102,19 +106,52 @@ export const useRecommendationStore = defineStore('recommendation', () => {
   }
 
   /**
-   * Fetch all products.
+   * Fetch products (page 1 — resets list).
    */
-  async function fetchProducts() {
+  async function fetchProducts(perPage = 12) {
     loading.value = true;
     try {
-      const response = await api.get('/products');
-      products.value = response.data.data;
+      const response = await api.get('/products', {
+        params: { page: 1, per_page: perPage },
+      });
+      const data = response.data.data;
+      products.value = data.products ?? data;
+      productPage.value = data.pagination?.current_page ?? 1;
+      productLastPage.value = data.pagination?.last_page ?? 1;
+      hasMoreProducts.value = productPage.value < productLastPage.value;
       return { success: true };
     } catch (err) {
       console.error('Error fetching products:', err);
       return { success: false, message: err.response?.data?.message || 'Failed to load products' };
     } finally {
       loading.value = false;
+    }
+  }
+
+  /**
+   * Load next page of products (appends to existing list).
+   */
+  async function loadMoreProducts(perPage = 12) {
+    if (loadingMore.value || !hasMoreProducts.value) return { success: false };
+
+    loadingMore.value = true;
+    try {
+      const nextPage = productPage.value + 1;
+      const response = await api.get('/products', {
+        params: { page: nextPage, per_page: perPage },
+      });
+      const data = response.data.data;
+      const newProducts = data.products ?? data;
+      products.value = [...products.value, ...newProducts];
+      productPage.value = data.pagination?.current_page ?? nextPage;
+      productLastPage.value = data.pagination?.last_page ?? 1;
+      hasMoreProducts.value = productPage.value < productLastPage.value;
+      return { success: true };
+    } catch (err) {
+      console.error('Error loading more products:', err);
+      return { success: false, message: err.response?.data?.message || 'Failed to load more products' };
+    } finally {
+      loadingMore.value = false;
     }
   }
 
@@ -160,6 +197,8 @@ export const useRecommendationStore = defineStore('recommendation', () => {
     products,
     orders,
     loading,
+    loadingMore,
+    hasMoreProducts,
     scoringMode,
     isPersonalized,
     sessionId,
@@ -168,6 +207,7 @@ export const useRecommendationStore = defineStore('recommendation', () => {
     submitQuestionnaire,
     fetchRecommendations,
     fetchProducts,
+    loadMoreProducts,
     mockPurchase,
     fetchOrders,
   };

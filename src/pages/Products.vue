@@ -103,12 +103,24 @@
         <div class="text-4xl mb-3">📦</div>
         <p class="text-gray-400 text-sm">No products in this category.</p>
       </div>
+
+      <!-- Infinite Scroll Sentinel -->
+      <div v-if="!loading && selectedCategory === 'all'" ref="scrollSentinel" class="py-8 text-center">
+        <div v-if="recStore.loadingMore" class="flex items-center justify-center gap-3">
+          <div class="w-6 h-6 border-3 border-gray-200 border-t-rose-500 rounded-full animate-spin"></div>
+          <span class="text-sm text-gray-400">Loading more products...</span>
+        </div>
+        <div v-else-if="!recStore.hasMoreProducts && recStore.products.length > 0"
+          class="text-sm text-gray-300">
+          ✓ All {{ recStore.products.length }} products loaded
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { useAuthStore } from '@/stores/authStore';
@@ -122,6 +134,8 @@ const recStore = useRecommendationStore();
 const loading = ref(false);
 const purchasing = ref(null);
 const selectedCategory = ref('all');
+const scrollSentinel = ref(null);
+let observer = null;
 
 const categories = computed(() => {
   const cats = [...new Set(recStore.products.map(p => p.category))].sort();
@@ -160,9 +174,35 @@ async function handlePurchase(product) {
   purchasing.value = null;
 }
 
+function setupObserver() {
+  if (observer) observer.disconnect();
+  if (!scrollSentinel.value) return;
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting && recStore.hasMoreProducts && !recStore.loadingMore) {
+        recStore.loadMoreProducts(12);
+      }
+    },
+    { rootMargin: '200px' }
+  );
+  observer.observe(scrollSentinel.value);
+}
+
+// Re-setup observer when sentinel ref becomes available
+watch(scrollSentinel, (el) => {
+  if (el) setupObserver();
+});
+
 onMounted(async () => {
   loading.value = true;
-  await recStore.fetchProducts();
+  await recStore.fetchProducts(12);
   loading.value = false;
+  await nextTick();
+  setupObserver();
+});
+
+onUnmounted(() => {
+  if (observer) observer.disconnect();
 });
 </script>
